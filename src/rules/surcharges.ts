@@ -48,7 +48,7 @@ export function computeSurcharges(
     });
   }
 
-  const time = timeSurcharge(ctx);
+  const time = billed.some((r) => r.act.noTimeSurcharge) ? undefined : timeSurcharge(ctx);
   if (time && billed.length > 0) {
     lines.push({ ...time, amountCents: flatFeeCents(time.code, date) });
   }

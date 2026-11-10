@@ -3,85 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Cotation IDEL — calculateur NGAP</title>
-  <meta name="description" content="Calculez gratuitement la cotation d'un passage infirmier libéral : cumul d'actes, majorations, IFD et IK, avec la règle appliquée à chaque ligne." />
-  <meta name="theme-color" content="#0f766e" />
+  <title>Cotation infirmière : calculer un passage NGAP</title>
+  <meta name="description" content="Calculez la cotation d'un passage infirmier libéral : cumul des actes, majorations, IFD et IK, avec la règle de la NGAP appliquée à chaque ligne." />
+  <meta name="theme-color" content="#1e4d3b" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%231e4d3b%22/%3E%3Cpath d=%22M16 8v16M8 16h16%22 stroke=%22%23f3f6f1%22 stroke-width=%224%22/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230f766e%22/%3E%3Cpath d=%22M16 8v16M8 16h16%22 stroke=%22white%22 stroke-width=%224%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <span class="eyebrow">Gratuit · sans compte · open source</span>
-      <h1>Cotation IDEL</h1>
-      <p class="lede">Composez votre passage, obtenez la cotation détaillée et la règle NGAP appliquée à chaque ligne.</p>
-    </div>
+  <header class="masthead wrap">
+    <h1>Cotation infirmière</h1>
+    <p id="tariff-date" class="masthead-meta"></p>
   </header>
 
-  <main class="wrap grid">
-    <section class="card" aria-labelledby="acts-title">
-      <div class="card-head">
-        <h2 id="acts-title">Actes réalisés</h2>
-        <span class="hint" id="acts-count">Aucun acte</span>
-      </div>
-      <ul class="acts" id="acts"></ul>
-    </section>
-
-    <section class="card" aria-labelledby="visit-title">
-      <div class="card-head"><h2 id="visit-title">Passage</h2></div>
-
-      <label class="field">
-        <span>Date et heure</span>
-        <input type="datetime-local" id="dateTime" />
-      </label>
-
-      <div class="toggles">
-        <label class="toggle"><input type="checkbox" id="night" /><span>Soins de nuit prescrits</span></label>
-        <label class="toggle"><input type="checkbox" id="holiday" /><span>Jour férié</span></label>
-        <label class="toggle"><input type="checkbox" id="coordination" /><span>Coordination infirmière (MCI)</span></label>
-        <label class="toggle"><input type="checkbox" id="home" checked /><span>Soins à domicile prescrits</span></label>
-      </div>
-
-      <div id="travel" class="travel">
-        <label class="field">
-          <span>Distance aller (km)</span>
-          <input type="number" id="distance" min="0" step="0.5" inputmode="decimal" value="0" />
-        </label>
-        <div class="segmented" role="radiogroup" aria-label="Zone">
-          <label><input type="radio" name="terrain" value="plain" checked /><span>Plaine</span></label>
-          <label><input type="radio" name="terrain" value="mountain" /><span>Montagne</span></label>
+  <main class="wrap layout">
+    <div class="col-left">
+      <section class="form-box" aria-labelledby="visit-title">
+        <h2 id="visit-title" class="box-title">Passage</h2>
+        <div class="cells">
+          <label class="cell cell-wide">
+            <span class="cell-label">Date et heure du soin</span>
+            <input type="datetime-local" id="dateTime" />
+          </label>
+          <label class="cell check"><input type="checkbox" id="night" /><span>Soins de nuit prescrits</span></label>
+          <label class="cell check"><input type="checkbox" id="holiday" /><span>Jour férié</span></label>
+          <label class="cell check"><input type="checkbox" id="coordination" /><span>Coordination infirmière (MCI)</span></label>
+          <label class="cell check"><input type="checkbox" id="home" checked /><span>Soins à domicile prescrits</span></label>
+          <label class="cell travel">
+            <span class="cell-label">Distance aller depuis le cabinet</span>
+            <span class="with-unit"><input type="number" id="distance" min="0" step="0.5" inputmode="decimal" value="0" /><span>km</span></span>
+          </label>
+          <fieldset class="cell travel terrain">
+            <legend class="cell-label">Zone</legend>
+            <label><input type="radio" name="terrain" value="plain" checked /><span>Plaine</span></label>
+            <label><input type="radio" name="terrain" value="mountain" /><span>Montagne</span></label>
+          </fieldset>
+          <label class="cell check travel cell-wide"><input type="checkbox" id="sameAgglo" /><span>Patient dans la même agglomération que le cabinet</span></label>
         </div>
-        <label class="toggle"><input type="checkbox" id="sameAgglo" /><span>Même agglomération que le cabinet</span></label>
-      </div>
-    </section>
+      </section>
 
-    <section class="card result" aria-labelledby="result-title" id="result">
-      <div class="card-head">
-        <h2 id="result-title">Cotation</h2>
-        <span class="hint" id="tariff-date"></span>
-      </div>
-      <ol class="lines" id="lines"></ol>
-      <div class="total">
-        <span>Total</span>
-        <strong id="total">0,00 €</strong>
-      </div>
-    </section>
+      <section class="acts-panel" aria-labelledby="acts-title">
+        <h2 id="acts-title">Actes de la NGAP</h2>
+        <label class="search">
+          <span class="visually-hidden">Rechercher un acte</span>
+          <input type="search" id="search" placeholder="Rechercher : pansement, insuline, perfusion…" autocomplete="off" />
+        </label>
+        <div id="catalog"></div>
+      </section>
+    </div>
+
+    <aside class="col-right">
+      <section class="sheet" id="sheet" aria-labelledby="sheet-title" aria-live="polite">
+        <div class="sheet-head">
+          <h2 id="sheet-title">Feuille de cotation</h2>
+          <button type="button" id="clear" class="link-button" hidden>Tout retirer</button>
+        </div>
+        <div id="conflicts"></div>
+        <ol class="sheet-lines" id="lines"></ol>
+        <div class="sheet-total">
+          <span>Total du passage</span>
+          <output id="total">0,00 €</output>
+        </div>
+      </section>
+
+      <p class="disclaimer">Outil indépendant, sans lien avec l'Assurance Maladie. Les règles viennent de la NGAP publiée (titre XVI, version de juillet 2026) : vérifiez toujours avant de facturer. <a href="https://github.com/mxbhr/ngap-engine">Code source</a></p>
+    </aside>
   </main>
 
-  <div class="bar" id="bar">
-    <div class="wrap bar-inner">
-      <span>Total du passage</span>
-      <a href="#result" id="bar-total">0,00 €</a>
-    </div>
-  </div>
-
-  <footer class="wrap footer">
-    <p>Outil indépendant, non affilié à l'Assurance Maladie. Les règles sont implémentées à partir de sources publiques : vérifiez toujours avec la NGAP officielle avant de facturer.</p>
-    <p>Moteur open source : <a href="https://github.com/mxbhr/ngap-engine">github.com/mxbhr/ngap-engine</a></p>
-  </footer>
+  <a href="#sheet" class="bottom-bar" id="bar">
+    <span id="bar-count">Aucun acte</span>
+    <strong id="bar-total">0,00 €</strong>
+  </a>
 
   <script type="module" src="app.js"></script>
 </body>

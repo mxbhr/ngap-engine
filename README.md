@@ -29,7 +29,9 @@ These rules are documented in guides and training courses, and implemented insid
 
 ## Features
 
-- **Article 11B cumulation**: 100 % / 50 % / not billed, with derogations (blood draw, insulin-treated patients, perfusions)
+- **Full Titre XVI catalog**: 110 nursing acts from chapters I and II, with article, coefficient, usage limits and derogations
+- **Article 11B cumulation**: 100 % / 50 % / not billed, with derogations (blood draw, topical analgesia, insulin-treated patients, perfusions, post-operative care)
+- **Conflict detection**: acts the nomenclature forbids billing together are reported
 - **Surcharges**: single act (MAU), coordination (MCI), night, deep night, Sunday and public holidays, with non-cumulation handled
 - **Travel**: flat fee (IFD), mileage (IK) with plain/mountain deductions and the daily cap on cumulated kilometres
 - **Versioned tariffs**: every value has an effective date and a source, so past and future dates are priced correctly (AMI 3.15 € → 3.35 € on 7 Nov 2026 → 3.45 € on 1 Nov 2027)
@@ -67,9 +69,15 @@ IK                       2,80 € — 8 billable km (plain), before daily cap
 Total: 20,63 €
 ```
 
-## Describing any act
+## Catalog
 
-The catalog is a convenience. Any act of the nomenclature can be described with a few fields:
+```ts
+import { ACTS, ARTICLES, findAct } from "ngap-engine";
+
+findAct("INSULIN_INJECTION"); // { letter: "AMI", coefficient: 1, article: "XVI-II-5bis", ... }
+```
+
+The catalog follows the NGAP version in force in July 2026 (Titre XVI). Every act can also be described by hand:
 
 ```ts
 const act = {
@@ -101,7 +109,8 @@ dailyMileage("2026-11-10", [
 ## Roadmap
 
 - [ ] Dependent-patient packages (BSA, BSB, BSC) and their specific cumulation rules
-- [ ] Full act catalog generated from the official nomenclature
+- [x] Full Titre XVI act catalog
+- [ ] Automated cross-check against the NGAP CSV published on data.gouv.fr
 - [ ] Child surcharge (MIE) and remaining derogations
 - [x] Web app for nurses ([live](https://mxbhr.github.io/ngap-engine/))
 - [ ] REST API

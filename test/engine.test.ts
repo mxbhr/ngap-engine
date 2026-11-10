@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACTS,
+  ARTICLES,
   CATALOG,
+  findAct,
   applyArticle11B,
   billableKm,
   dailyMileage,
@@ -9,6 +12,7 @@ import {
   quote,
 } from "../src/index.js";
 
+const { TOPICAL_ANALGESIA } = CATALOG;
 const { BLOOD_DRAW, SC_INJECTION, SIMPLE_DRESSING, COMPLEX_DRESSING, INSULIN_INJECTION, DIABETES_MONITORING, SHORT_PERFUSION, LONG_PERFUSION } = CATALOG;
 
 describe("tariffs", () => {
@@ -58,6 +62,35 @@ describe("article 11B", () => {
       ["LONG_PERFUSION", 1],
       ["SHORT_PERFUSION", 1],
     ]);
+  });
+});
+
+describe("catalog", () => {
+  it("covers Titre XVI with unique codes and known articles", () => {
+    expect(ACTS.length).toBeGreaterThan(90);
+    expect(new Set(ACTS.map((a) => a.code)).size).toBe(ACTS.length);
+    const articles = new Set(ARTICLES.map((a) => a.id));
+    expect(ACTS.every((a) => a.article && articles.has(a.article))).toBe(true);
+  });
+
+  it("bills topical analgesia at full rate with its dressing", () => {
+    const rated = applyArticle11B([COMPLEX_DRESSING, TOPICAL_ANALGESIA]);
+    expect(rated.map((r) => r.rate)).toEqual([1, 1]);
+  });
+
+  it("does not count topical analgesia toward the blood-draw limit", () => {
+    const rated = applyArticle11B([BLOOD_DRAW, COMPLEX_DRESSING, TOPICAL_ANALGESIA, SC_INJECTION]);
+    expect(rated.map((r) => [r.act.code, r.rate])).toEqual([
+      ["BLOOD_DRAW", 1],
+      ["TOPICAL_ANALGESIA", 1],
+      ["COMPLEX_DRESSING", 1],
+      ["SC_INJECTION", 0],
+    ]);
+  });
+
+  it("flags acts that cannot be billed together", () => {
+    const q = quote({ acts: [findAct("CATHETERISATION_F"), findAct("NEUROGENIC_BLADDER_REHAB")], dateTime: "2026-11-10T10:00" });
+    expect(q.conflicts).toEqual([{ group: "bladder", codes: ["CATHETERISATION_F", "NEUROGENIC_BLADDER_REHAB"] }]);
   });
 });
 

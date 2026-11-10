@@ -28,6 +28,7 @@ const byCoefficientDesc = (a: Act, b: Act) => b.coefficient - a.coefficient;
  * - Same full-rate group only (e.g. art. 5 bis): every act at 100 %.
  * - Short + long perfusion: both at 100 %.
  * - Blood draw by direct venous puncture: 100 %, within a limit of two billed acts.
+ * - Topical analgesia before a dressing: 100 %.
  */
 export function applyArticle11B(acts: readonly Act[]): RatedAct[] {
   if (acts.length === 0) return [];
@@ -59,10 +60,11 @@ export function applyArticle11B(acts: readonly Act[]): RatedAct[] {
       : { act, rate: 1, rule: "11B_PERFUSIONS", reason: "Art. 11B derogation: short and long perfusions cumulate at full rate" },
   );
 
-  const twoActsLimit = exempt.some((a) => a.alwaysFullRate);
+  const twoActsLimit = sorted.some((a) => a.limitsToTwoActs);
 
   ranked.forEach((act, index) => {
-    const billedSoFar = result.filter((r) => r.rate > 0).length;
+    // Topical analgesia is attached to its dressing and does not count toward the limit.
+    const billedSoFar = result.filter((r) => r.rate > 0 && !(r.act.alwaysFullRate && !r.act.limitsToTwoActs)).length;
     if (twoActsLimit && billedSoFar >= 2) {
       result.push({ act, rate: 0, rule: "11B_TWO_ACTS_LIMIT", reason: "Art. 11B: limit of two billed acts reached" });
     } else if (index === 0) {
@@ -75,4 +77,19 @@ export function applyArticle11B(acts: readonly Act[]): RatedAct[] {
   });
 
   return result;
+}
+
+export interface Conflict {
+  group: string;
+  codes: string[];
+}
+
+/** Acts that the nomenclature forbids billing together in one session. */
+export function findConflicts(acts: readonly Act[]): Conflict[] {
+  const groups = new Map<string, string[]>();
+  for (const act of acts) {
+    if (!act.exclusiveGroup) continue;
+    groups.set(act.exclusiveGroup, [...(groups.get(act.exclusiveGroup) ?? []), act.code]);
+  }
+  return [...groups].filter(([, codes]) => codes.length > 1).map(([group, codes]) => ({ group, codes }));
 }

@@ -1,5 +1,5 @@
 import type { Act } from "./acts.js";
-import { applyArticle11B } from "./rules/cumulation.js";
+import { applyArticle11B, findConflicts, type Conflict } from "./rules/cumulation.js";
 import { computeSurcharges, type SurchargeContext } from "./rules/surcharges.js";
 import { billableKm, travelFlatFee, type Trip } from "./rules/travel.js";
 import { flatFeeCents, letterKeyCents } from "./tariffs.js";
@@ -30,6 +30,8 @@ export interface Quote {
   date: string;
   lines: QuoteLine[];
   totalCents: number;
+  /** Acts that should not be billed together; the quote is computed anyway. */
+  conflicts: Conflict[];
 }
 
 const roundCents = (value: number) => Math.round(value);
@@ -82,6 +84,7 @@ export function quote(session: Session): Quote {
   return {
     date,
     lines,
+    conflicts: findConflicts(session.acts),
     totalCents: lines.reduce((sum, l) => sum + l.amountCents, 0),
   };
 }
