@@ -1,0 +1,39 @@
+{
+  "name": "ngap-engine",
+  "version": "0.1.0",
+  "description": "Explainable billing engine for French independent nurses (NGAP): article 11B cumulation rules, surcharges, travel allowances.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ngap",
+    "nurse",
+    "billing",
+    "healthcare",
+    "france",
+    "idel",
+    "assurance-maladie"
+  ],
+  "author": "Maxime Behr",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mxbhr/ngap-engine"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
