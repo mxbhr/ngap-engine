@@ -19,7 +19,11 @@ export interface QuoteLine {
   coding?: string;
   rate?: number;
   amountCents: number;
+  /** Stable rule identifier (e.g. "11B_SECOND", "MAU", "IK"), useful for translations. */
+  rule: string;
   reason: string;
+  /** Billable kilometres, for mileage lines. */
+  km?: number;
 }
 
 export interface Quote {
@@ -35,7 +39,7 @@ export function quote(session: Session): Quote {
   const lines: QuoteLine[] = [];
 
   const rated = applyArticle11B(session.acts);
-  for (const { act, rate, reason } of rated) {
+  for (const { act, rate, rule, reason } of rated) {
     const value = letterKeyCents(act.letter, date);
     lines.push({
       code: act.code,
@@ -43,17 +47,18 @@ export function quote(session: Session): Quote {
       coding: `${act.letter} ${act.coefficient}`,
       rate,
       amountCents: roundCents(value * act.coefficient * rate),
+      rule,
       reason,
     });
   }
 
   for (const s of computeSurcharges(rated, session)) {
-    lines.push({ code: s.code, label: s.code, amountCents: s.amountCents, reason: s.reason });
+    lines.push({ code: s.code, label: s.code, amountCents: s.amountCents, rule: s.code, reason: s.reason });
   }
 
   const ifd = travelFlatFee(date, Boolean(session.homeVisitPrescribed));
   if (ifd > 0) {
-    lines.push({ code: "IFD", label: "Indemnité forfaitaire de déplacement", amountCents: ifd, reason: "Prescribed home visit" });
+    lines.push({ code: "IFD", label: "Indemnité forfaitaire de déplacement", amountCents: ifd, rule: "IFD", reason: "Prescribed home visit" });
   }
 
   if (session.trip) {
@@ -67,6 +72,8 @@ export function quote(session: Session): Quote {
         code: "IK",
         label: "Indemnités kilométriques",
         amountCents: km * perKm,
+        rule: "IK",
+        km,
         reason: `${km} billable km (${session.trip.terrain}), before daily cap`,
       });
     }

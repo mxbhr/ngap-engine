@@ -11,7 +11,13 @@ Turn a care session into a compliant, line-by-line quote, with the rule behind e
 ![Dependencies](https://img.shields.io/badge/dependencies-0-22c55e)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
+**[▶ Try the web app](https://mxbhr.github.io/ngap-engine/)**: free, no account, works on any phone.
+
 </div>
+
+<p align="center">
+  <a href="https://mxbhr.github.io/ngap-engine/"><img src="docs/screenshot.png" alt="Cotation IDEL web app" width="820"/></a>
+</p>
 
 ---
 
@@ -29,6 +35,7 @@ These rules are documented in guides and training courses, and implemented insid
 - **Versioned tariffs**: every value has an effective date and a source, so past and future dates are priced correctly (AMI 3.15 € → 3.35 € on 7 Nov 2026 → 3.45 € on 1 Nov 2027)
 - **Explainable**: each line of a quote carries the rule that produced it
 - **Zero dependencies**, integer-cent arithmetic, strict TypeScript
+- **Stable rule identifiers** on every line (`11B_SECOND`, `MAU`, `IK`…) so any interface can translate them
 
 ## Quick start
 
@@ -96,7 +103,8 @@ dailyMileage("2026-11-10", [
 - [ ] Dependent-patient packages (BSA, BSB, BSC) and their specific cumulation rules
 - [ ] Full act catalog generated from the official nomenclature
 - [ ] Child surcharge (MIE) and remaining derogations
-- [ ] REST API and a web playground
+- [x] Web app for nurses ([live](https://mxbhr.github.io/ngap-engine/))
+- [ ] REST API
 - [ ] Rule changes from Avenant 11 scheduled for 2027 and 2028
 
 Contributions from nurses, billing experts and developers are welcome: open an issue with the rule, its legal reference and an example.

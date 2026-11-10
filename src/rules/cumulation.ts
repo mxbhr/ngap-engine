@@ -1,9 +1,20 @@
 import type { Act } from "../acts.js";
 
+/** Stable identifiers of the cumulation rules, useful for translations. */
+export type CumulationRule =
+  | "11B_FIRST"
+  | "11B_SECOND"
+  | "11B_NOT_BILLED"
+  | "11B_SAME_GROUP"
+  | "11B_ALWAYS_FULL"
+  | "11B_PERFUSIONS"
+  | "11B_TWO_ACTS_LIMIT";
+
 export interface RatedAct {
   act: Act;
   /** 1 = full rate, 0.5 = half rate, 0 = not billed. */
   rate: 1 | 0.5 | 0;
+  rule: CumulationRule;
   reason: string;
 }
 
@@ -28,6 +39,7 @@ export function applyArticle11B(acts: readonly Act[]): RatedAct[] {
     return sorted.map((act) => ({
       act,
       rate: 1,
+      rule: "11B_SAME_GROUP",
       reason: `Art. 11B derogation: acts of group "${group}" cumulate at full rate`,
     }));
   }
@@ -41,26 +53,24 @@ export function applyArticle11B(acts: readonly Act[]): RatedAct[] {
   );
   const ranked = sorted.filter((a) => !exempt.includes(a));
 
-  const result: RatedAct[] = exempt.map((act) => ({
-    act,
-    rate: 1,
-    reason: act.alwaysFullRate
-      ? "Art. 11B derogation: always billed at full rate"
-      : "Art. 11B derogation: short and long perfusions cumulate at full rate",
-  }));
+  const result: RatedAct[] = exempt.map((act) =>
+    act.alwaysFullRate
+      ? { act, rate: 1, rule: "11B_ALWAYS_FULL", reason: "Art. 11B derogation: always billed at full rate" }
+      : { act, rate: 1, rule: "11B_PERFUSIONS", reason: "Art. 11B derogation: short and long perfusions cumulate at full rate" },
+  );
 
-  const billedLimit = exempt.some((a) => a.alwaysFullRate) ? 2 : Infinity;
+  const twoActsLimit = exempt.some((a) => a.alwaysFullRate);
 
   ranked.forEach((act, index) => {
     const billedSoFar = result.filter((r) => r.rate > 0).length;
-    if (billedSoFar >= billedLimit) {
-      result.push({ act, rate: 0, reason: "Art. 11B: limit of two billed acts reached" });
+    if (twoActsLimit && billedSoFar >= 2) {
+      result.push({ act, rate: 0, rule: "11B_TWO_ACTS_LIMIT", reason: "Art. 11B: limit of two billed acts reached" });
     } else if (index === 0) {
-      result.push({ act, rate: 1, reason: "Art. 11B: highest coefficient, full rate" });
-    } else if (index === 1 && !exempt.some((a) => a.alwaysFullRate)) {
-      result.push({ act, rate: 0.5, reason: "Art. 11B: second act, half rate" });
+      result.push({ act, rate: 1, rule: "11B_FIRST", reason: "Art. 11B: highest coefficient, full rate" });
+    } else if (index === 1) {
+      result.push({ act, rate: 0.5, rule: "11B_SECOND", reason: "Art. 11B: second act, half rate" });
     } else {
-      result.push({ act, rate: 0, reason: "Art. 11B: third act or more, not billed" });
+      result.push({ act, rate: 0, rule: "11B_NOT_BILLED", reason: "Art. 11B: third act or more, not billed" });
     }
   });
 
